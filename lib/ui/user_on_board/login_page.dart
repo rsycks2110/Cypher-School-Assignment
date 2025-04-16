@@ -1,109 +1,107 @@
-import 'package:expense_app_using_bloc/ui/user_on_board/register_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expense_app_using_bloc/ui/expense_management/home_page.dart';
+import 'package:expense_app_using_bloc/ui/widgets/app_widgts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatelessWidget{
 
   TextEditingController emailController=TextEditingController();
   TextEditingController passwordController=TextEditingController();
-
+   static final Login_Value="isLoggedIn";
+   UserCredential? credential;
   @override
   Widget build(BuildContext context) {
     bool isLandScape = MediaQuery.of(context).orientation == Orientation.landscape;
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Login Page"),
+        title: Text("Login",style: mTextStyle16(),),
       ),
-      body: isLandScape ? LandScapeUI(context: context) : PortraitUI(context: context),
+      body: Padding(
+        padding:  EdgeInsets.symmetric(horizontal: 15),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(height:40,
+                child: mTextField(mController: emailController,mLabel: Text("Email"),mHintText: "Email")),
+            SizedBox(height: 15,),
+            SizedBox(height: 40,
+                child: mTextField(mController: passwordController,mLabel: Text("Password"),mHintText: "Password")),
+            SizedBox(height: 25,),
+            Container(
+                height: MediaQuery.of(context).size.height*.07,
+                width: double.infinity,
+                child: mButton(onTap: () async{
+                  try {
+                     credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+                        email: emailController.text.toString(),
+                        password: passwordController.text.toString(),
+                    );
+                     print(credential!.user!.uid!);
+                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                    prefs.setString("u_id",(credential!.user!.uid!) );
+                    prefs.setInt(Login_Value, 1);
+                    if(credential!.user!.uid!=null){
+
+                       FirebaseFirestore firebaseFireStore = FirebaseFirestore.instance;
+                       DocumentReference<Map<String, dynamic>> expenses =  firebaseFireStore.collection("users").doc("${credential!.user!.uid}");
+                       var docRef = expenses.collection("expenses");
+                     Navigator.push(context, MaterialPageRoute(builder: (context){
+                       return DashBoard();
+                     }));
+                    }
+                  } on FirebaseAuthException catch (e) {
+                    if (e.code == 'user-not-found') {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Center(child: Text('No user found for that email.'))));
+                    } else if (e.code == 'wrong-password') {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Center(child: Text('Wrong password provided for that user.'))));
+                    }else if(e.code=='invalid-email'){
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Given Email Is Invalid.')));
+                    }
+                  }
+                  
+                },mTitle: "Login"))
+          ],
+        ),
+      )
     );
   }
   Widget MainUI({required BuildContext context}){
-    return Column(mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SizedBox(
-            child:TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                  hintText: "Enter Your Email Here",
-                  hintStyle: TextStyle(fontSize: 20,fontWeight: FontWeight.w300,color: Colors.orange),
-                  labelText: "Email",
-                  labelStyle: TextStyle(fontSize: 20,fontWeight: FontWeight.w300,color: Colors.green),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20)
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20)
-                  )
-              ),
-            )
-        ),
-        SizedBox(height: 30,),
-        SizedBox(
-            child:TextField(
-              controller: passwordController,
-              decoration: InputDecoration(
-                  hintText: "Enter Your Password Here",
-                  labelStyle: TextStyle(fontSize: 20,fontWeight: FontWeight.w300,color: Colors.green),
-                  hintStyle: TextStyle(fontSize: 20,fontWeight: FontWeight.w300,color:Colors.orange),
-                  labelText: "Password",
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20)
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20)
-                  )
-              ),
-            )
-        ),
-        SizedBox(height: 30,),
-        SizedBox(height: 40,width: MediaQuery.of(context).size.width/3,
-          child: ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange,foregroundColor: Colors.yellow,
-                  shape:RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)) ),
-              onPressed: (){
-                }, child: Text("Login",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white),)),
-        ),
-        SizedBox(height: 30,),
-        RichText(text: TextSpan(
-            style: TextStyle(fontSize: 20,fontWeight: FontWeight.w300,color: Colors.purple),
-            children: <TextSpan>[
-              TextSpan(
-                  text: "Don't ",style: TextStyle(fontWeight: FontWeight.w300,color: Colors.red)
-              ),
-              TextSpan(
-                  text: "Have "
-              ),
-              TextSpan(
-                  text: "An Account",style: TextStyle(fontWeight: FontWeight.w400,color: Colors.deepOrange)
-              ),
-              TextSpan(text: "  "),
-              TextSpan(text:"Register Here",style: TextStyle(fontWeight: FontWeight.w400,color: Colors.purple),
-              recognizer: TapGestureRecognizer()
-                ..onTap= (){
-                Navigator.push(context,MaterialPageRoute(builder: (context){
-                  return RegisterPage();
-                }));
-    }
-
-
-              )
-
-            ]
-        ))
-      ],
+    return Padding(
+      padding:  EdgeInsets.all(15),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          mTextField(mController: emailController,mLabel: Text("Email"),mHintText: "Email"),
+          SizedBox(height: 15,),
+          mTextField(mController: passwordController,mLabel: Text("Password"),mHintText: "Password"),
+          SizedBox(height: 25,),
+          GestureDetector(
+            onTap: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context){
+                return DashBoard();
+              }));
+            },
+            child: Container(
+              height: 50,
+                width: double.infinity,
+                child: mButton(onTap: (){},mTitle: "Login")),
+          )
+        ],
+      ),
     );
   }
   Widget LandScapeUI({required BuildContext context}){
     return Row(
       children: [
         Expanded(
-          child: Column(mainAxisAlignment: MainAxisAlignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Welcome Here",style: TextStyle(fontSize: 30,fontWeight: FontWeight.w500,color: Colors.greenAccent),
-
-              ),
+              Text("Welcome Here",style: mTextStyle16(),),
               SizedBox(height: 30,),
             ],
           ),
@@ -117,7 +115,7 @@ class LoginPage extends StatelessWidget{
   }
   Widget PortraitUI({required BuildContext context}){
     return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Text("Welcome Here",style: TextStyle(fontSize: 30,fontWeight: FontWeight.w500,color: Colors.greenAccent),),
+      Text("Welcome Here",style: mTextStyle16(),),
       SizedBox(height: 30,),
      MainUI(context: context)
     ],);

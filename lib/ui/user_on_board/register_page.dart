@@ -1,5 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expense_app_using_bloc/ui/expense_management/home_page.dart';
+import 'package:expense_app_using_bloc/ui/user_on_board/login_page.dart';
+import 'package:expense_app_using_bloc/ui/widgets/app_widgts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class RegisterPage extends StatefulWidget{
 
@@ -11,194 +18,105 @@ class _RegisterPageState extends State<RegisterPage> {
 
   TextEditingController nameController=TextEditingController();
 
-  TextEditingController usernameController=TextEditingController();
-
-  TextEditingController mobileController=TextEditingController();
-
   TextEditingController emailController=TextEditingController();
 
   TextEditingController passwordController=TextEditingController();
-
-  TextEditingController rePasswordController=TextEditingController();
-
-  List<Map<String,dynamic>> mNotes=[];
-  static const String Customer_Username="UserName";
-  static const String Customer_Password = "Password";
+  UserCredential? credential;
 @override
   Widget build(BuildContext context) {
    return Scaffold(
-  appBar: AppBar(
-    leading: GestureDetector(onTap: (){
-      Navigator.pop(context);
-    },
-        child: Icon(Icons.arrow_back,color: Colors.white,)),
-  ),
-     body: Container(
-       color: Colors.white,
-       width: double.infinity,
-       height: double.infinity,
+     body:SafeArea(
        child: Padding(
-         padding: const EdgeInsets.all(10.0),
-          child: Column(
-           // shrinkWrap: true,
+         padding: EdgeInsets.only(left: 15.0,right: 15,top: 15),
+         child: ListView(
            children: [
-             const Center(child: Text("Sign UP",style: TextStyle(fontSize: 30,fontWeight: FontWeight.w500,color:Colors.green),)),
-           SizedBox(height: 50,),
-             SizedBox(height: 60,
-               child: Row(
-                 children: [
-                   Expanded(
-                     flex:3,
-                     child: TextField(controller: nameController,
-                     keyboardType: TextInputType.name,
-                     decoration: InputDecoration(
-                       hintText: "First Name",
-                       enabledBorder: OutlineInputBorder(
-                         borderRadius: BorderRadius.circular(20),
-                       ),
-                       focusedBorder: OutlineInputBorder(
-                           borderRadius: BorderRadius.circular(20)
-                     ),
-                     ),
-                   ),),
-                   SizedBox(width: 10),
-                   Expanded(
-                     flex:3,
-                     child: TextField(controller: nameController,
-                       keyboardType: TextInputType.name,
-                       decoration: InputDecoration(
-                           hintText: "Last Name",
+            ListTile(
+              leading: Icon(Icons.arrow_back_outlined),
+              title: Center(child: Text("Sign Up",style: mTextStyle16(),)),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height*.08,),
+             SizedBox(height: 40,
+                 child: mTextField(mController: nameController,mLabel: Text("Name"))),
+             SizedBox(height: 15,),
+             SizedBox(height: 40,
+                 child: mTextField(mController: emailController,mLabel: Text("Email"))),
+             SizedBox(height: 15,),
+             SizedBox(height: 40,
+                 child: mTextField(mController: passwordController,mLabel: Text("Password"))),
+             SizedBox(height: 15,),
+             Row(
+               children: [
+                 Checkbox(value: false, onChanged: (value){
+                   value=true;
+             }),
+                 SizedBox(width: 5,),
+                 RichText(text: TextSpan(
+                   text: "By Signing up, you agree to the ",style: mTextStyle14(mFontWeight: FontWeight.bold),
+                   children: [
+                     TextSpan(text: "Terms of Service and Privacy Policy",style: mTextStyle12(mColor: Colors.deepPurple,mFontWeight: FontWeight.bold))
+                   ]
+                 ))
+               ],
+             ),
+             SizedBox(height: 20,),
+             Container(height: MediaQuery.of(context).size.height*.07,
+               child: mButton(onTap: () async{
 
-                         enabledBorder: OutlineInputBorder(
-                           borderRadius: BorderRadius.circular(20),
-                         ),
-                         focusedBorder: OutlineInputBorder(
-                             borderRadius: BorderRadius.circular(20)
-                       ),
-                     ),
-                   ),),
-                 ],
+                 try {
+                  credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                     email: emailController.text.toString(),
+                     password:  passwordController.text.toString(),
+                 );
+
+                   emailController.clear();
+                   passwordController.clear();
+                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Center(child: Text("Registered Successfully"))));
+                 }
+                 on FirebaseAuthException catch(e){
+                   if(e.code == 'weak-password') {
+                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Center(child: Text('The password provided is too weak.'))));
+                   }
+                   else if(e.code == 'email-already-in-use') {
+                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Center(child: Text('The account already exists for that email.'))));
+                   }else if(e.code=='invalid-email'){
+                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Given Email Is Invalid.')));
+                   }
+                }
+                 catch(e){
+                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                 }
+
+               },mTitle: "Sign Up"
                ),
              ),
-             const SizedBox(height: 20,),
-             SizedBox(height: 60,
-               child: Expanded(
-                 flex: 3,
-                 child: Container(
-                   child: TextField(controller: usernameController,
-                     keyboardType: TextInputType.name,
-                     decoration: InputDecoration(
-                         hintText: "Enter UserName",
-
-                       enabledBorder: OutlineInputBorder(
-                         borderRadius: BorderRadius.circular(20),
-                       ),
-                       focusedBorder: OutlineInputBorder(
-                           borderRadius: BorderRadius.circular(20)
-                     ),
-                   ),
-                 ),
-               ),
-             ),),
-
-             SizedBox(height: 60,
-               child: Row(
+             SizedBox(height: 10,),
+             Center(child: Text("Or with",style: mTextStyle12(mFontWeight: FontWeight.bold,mColor: Colors.grey),))
+             ,SizedBox(height:20),
+             Row(mainAxisAlignment: MainAxisAlignment.center,
+               children: [
+               FaIcon(FontAwesomeIcons.google,size: 16,),
+               SizedBox(width: 5,),
+               Text("Sign Up with Google",style: mTextStyle16(),)
+             ],),
+             SizedBox(height: 20,),
+             Center(
+               child: RichText(text: TextSpan(
                  children: [
-                   Expanded(
-                     flex: 5,
-                     child: Container(
-                       child: TextField(controller: mobileController,
-                         keyboardType: TextInputType.number,
-                         decoration: InputDecoration(
-                           hintText: "Enter  Mobile Number ",
-
-                           enabledBorder: OutlineInputBorder(
-                             borderRadius: BorderRadius.circular(20),
-                           ),
-                           focusedBorder: OutlineInputBorder(
-                               borderRadius: BorderRadius.circular(20)
-                         ),
-                       ),
-                     ),
-                   ),),
-                   SizedBox(width: 10),
-                   Expanded(
-                     flex: 5,
-                     child: Container(
-                       child: TextField(
-                         controller: emailController,
-                         decoration: InputDecoration(
-                             hintText: "Enter  Email ",
-                             enabledBorder: OutlineInputBorder(
-                                 borderRadius: BorderRadius.circular(20),
-                             ),
-                           focusedBorder: OutlineInputBorder(
-                             borderRadius: BorderRadius.circular(20)
-                           )
-                         ),
-                       ),
-                     ),
+                   TextSpan(text: "Already have an account? ",style: mTextStyle14(mColor: Colors.grey)),
+                   TextSpan(text: "Login",style: mTextStyle14(mColor: Colors.deepPurpleAccent).copyWith(decoration: TextDecoration.underline),
+                   recognizer: TapGestureRecognizer() ..onTap = (){
+                     Navigator.push(context,MaterialPageRoute(builder: (context){
+                       return LoginPage();
+                     }));
+                   }
                    )
-                 ],
-               ),
-             ),
-             const SizedBox(height: 30,),
-
-           SizedBox(height: 60,
-           child: Row(
-           children: [
-
-
-         Expanded(
-    flex: 9,
-    child: Container(
-    child: TextField(
-      controller: passwordController,
-    decoration: InputDecoration(
-      hintText: "Enter Password ",
-    border: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(20),
-    borderSide: BorderSide(
-    color: Colors.black
-    )
-    )
-    ),
-    ),
-    ),
-    ),
-             SizedBox(width: 10,),
-             Expanded(
-               flex: 9,
-               child: Container(
-                 child: TextField(controller: rePasswordController,
-                   decoration: InputDecoration(
-                       hintText: "Retype  Password",
-                       border: OutlineInputBorder(
-                           borderRadius: BorderRadius.circular(20),
-                           borderSide: BorderSide(
-                               color: Colors.black
-                           )
-                       )
-                   ),
-                 ),
-               ),
-             )
-    ],
-    ),
-    ),
-
-             const SizedBox(height: 30,),
-             SizedBox(height: 50,width: MediaQuery.of(context).size.width/3,
-               child: ElevatedButton(onPressed: () async{
-
-
-               },style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                   child: Text("Submit",style: TextStyle(fontSize:20,fontWeight: FontWeight.w500,color: Colors.white),)),
+                 ]
+               )),
              )
            ],
          ),
        ),
-     ),
+     )
    );
   }
 }

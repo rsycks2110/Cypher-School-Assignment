@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "876546834844",
+    "project_id": "cipherxexpensetracker-bec90",
+    "storage_bucket": "cipherxexpensetracker-bec90.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:876546834844:android:a73f24abd72e6c5d980859",
+        "android_client_info": {
+          "package_name": "com.example.expense_app_using_bloc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTr4Bgl-6th2QoF9hNihnWuwQJ7A3UFxA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
