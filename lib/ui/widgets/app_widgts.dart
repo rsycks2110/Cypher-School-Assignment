@@ -61,28 +61,36 @@ Container mTabContainer({mColor,mWidth=70,mHeight=50}){
   );
 }
 Container mFetchContainer({mColor=Colors.green,mIconData=Icons.camera_alt_sharp,
-  mType="",mValue,mIconColor=Colors.green,
+  mType="",mValue="",mIconColor=Colors.green,
 mHeight=50,mWidth=150
 }){
   return Container(
     decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(15),
       color: mColor
     ),
     child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 5.0,vertical: 5),
+      padding: EdgeInsets.symmetric(horizontal: 10.0,vertical: 10),
       child: Row(
         children: [
           Container(
             width: 40,
             height: 40,
-            child: Icon(mIconData),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+              ),
+
+              padding: EdgeInsets.all(10),
+                child: Icon(mIconData,size: 20,)),
           ),
+          SizedBox(width: 10,),
           Column(
             //: MainAxisAlignment.start,
             children: [
               Text(mType,style: mTextStyle12(mColor: Colors.white),),
-             // Text(${"mValue"},style: mTextStyle14(mColor:Colors.white ),)
+              Text(mValue,style: mTextStyle14(mColor:Colors.white ),)
             ],
           )
         ],
@@ -93,7 +101,7 @@ mHeight=50,mWidth=150
 }
 TextField mTextField({
   mController="",mRadius=10,mMinLines=1,mMaxLines=2,mColor=Colors.grey,
-  mHintText="Hello",mLabel="",mIcon
+  mHintText="Hello",mLabel="",mIcon,mSuffix,bool mShow=true
 }){
 return TextField(
   controller: mController,

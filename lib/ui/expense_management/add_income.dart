@@ -3,8 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_app_using_bloc/ui/widgets/app_widgts.dart';
 import '../../data/firebase/firebase_repository.dart';
+import '../../data/model/cat_model.dart';
 import '../../data/model/expense_model.dart';
 import '../../domain/app_colors.dart';
+import '../../domain/app_constants.dart';
 
 class AddIncome extends StatefulWidget{
 
@@ -19,6 +21,7 @@ class _AddIncomeState extends State<AddIncome> {
   List<String> catItems=["Cinema","Fruits","Hospital_Bill","Shopping","Travelling","Travelling Bags"];
   String walletValue="SBI";
   List<String> walletItem=["SBI","PNB","HDFC","BOB"];
+  Cat_Models? selectedCategory;
 
 
   @override
@@ -90,32 +93,43 @@ class _AddIncomeState extends State<AddIncome> {
                         children: [
                           SizedBox(height:20),
                           Padding(
-                            padding:  EdgeInsets.symmetric(horizontal: 10),
-                            child: Container(
-                              height: 40,
-                              width: MediaQuery.of(context).size.width,
-                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),
-                                border: Border.all(width: 0.5,color: Colors.grey),
-                              ),
-                              child: Padding(
-                                padding:  EdgeInsets.symmetric(horizontal: 10),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton(
-                                    items: catItems.map((each){
-                                      return DropdownMenuItem(value: each,
-                                          child: Text(each,style: mTextStyle12(mColor: Colors.grey),));
-                                    }).toList(), onChanged: (value){
-                                    catValue=value!;
-                                    setState(() {
-
-                                    });
-                                  },value: catValue,isExpanded: true,
-                                    hint: Text("Category",style: TextStyle(fontSize: 12,color: Colors.grey),),
+                              padding:  EdgeInsets.symmetric(horizontal: 10),
+                                child: Container(
+                                  height: 40,
+                                  width: MediaQuery.of(context).size.width,
+                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(width: 0.5,color: Colors.grey),
                                   ),
-                                ),
-                              ),
-                            ),
-                          ),
+                                  child:  DropdownButtonHideUnderline(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: DropdownButton<Cat_Models>(
+                                        hint: Text("Category",style: TextStyle(fontSize: 12,color: Colors.grey),),
+                                        value: selectedCategory,
+                                        isExpanded: true,
+                                        onChanged: (Cat_Models? newValue) {
+                                          setState(() {
+                                            selectedCategory = newValue!;
+                                          });
+                                        },
+                                        items: AppConstants.mCategories.map((Cat_Models category) {
+                                          return DropdownMenuItem<Cat_Models>(
+                                            value: category,
+                                            child: Row(
+                                              children: [
+                                                Image.asset(category.imgURL, width: 24, height: 24),
+                                                SizedBox(width: 10),
+                                                Text(category.name,style: TextStyle(fontSize: 12,color: Colors.grey)),
+                                              ],
+                                            ),
+                                          );
+                                        }).toList(),
+
+
+                                      ),
+                                    ),
+                                  ),)),
+
                           SizedBox(height: 10,),
 
                           Padding(
@@ -182,7 +196,7 @@ class _AddIncomeState extends State<AddIncome> {
                                   height: 40,width: double.infinity,
                                   child: mButton(onTap: () {
                                     var newIncome= IncomeModel(
-                                        cat_value: catValue,
+                                        cat_value: selectedCategory.toString(),
                                         income_desc: descController.text.toString(),
                                         income_createdAt: DateTime.now().millisecondsSinceEpoch.toString(),
                                         income_type: walletValue,

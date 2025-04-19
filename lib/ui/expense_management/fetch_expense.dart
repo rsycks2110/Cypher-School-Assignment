@@ -1,10 +1,17 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expense_app_using_bloc/bloc/expense_bloc.dart';
+import 'package:expense_app_using_bloc/bloc/expense_event.dart';
+import 'package:expense_app_using_bloc/bloc/expense_state.dart';
 import 'package:expense_app_using_bloc/data/firebase/firebase_repository.dart';
+import 'package:expense_app_using_bloc/data/model/cat_model.dart';
 import 'package:expense_app_using_bloc/data/model/date_wise_expense_model.dart';
 import 'package:expense_app_using_bloc/data/model/expense_model.dart';
 import 'package:expense_app_using_bloc/ui/widgets/app_widgts.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 
@@ -20,9 +27,12 @@ class FetchExpense extends StatefulWidget{
 class _FetchExpenseState extends State<FetchExpense> with SingleTickerProviderStateMixin {
 
 var mUsers;
+
   @override
   void initState() {
     super.initState();
+
+   // BlocProvider.of<ExpenseBloc>(context).add(FetchExpenseEvent());
      tabController=TabController(length: 4, vsync: this);
      tabController!.addListener((){
        setState(() {
@@ -30,6 +40,7 @@ var mUsers;
        });
      });
   }
+
 
 FirebaseFirestore mFirebaseFireStore=FirebaseFirestore.instance;
 TabController? tabController;
@@ -44,7 +55,21 @@ static  List listMonth=["Jan","Feb","March","April",'May',"June","July","Aug","S
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    body: StreamBuilder(
+    body:
+    // BlocBuilder<ExpenseBloc,ExpenseState>(builder: (context,state){
+    //   if(state is ExpenseLoadingState){
+    //     return Center(child: CircularProgressIndicator());
+    //   } else if(state is ExpenseLoadedState){
+    //     return ListView.builder(itemBuilder: (context,index){
+    //       return ListTile();
+    //     });
+    //   } else if(state is ExpenseErrorState){
+    //     return Center(child: Text(state.errorMsg));
+    //   }
+    //   return Container();
+    // }),
+
+    StreamBuilder(
     stream: mFirebaseFireStore.collection("expenses").snapshots(),
     builder: (context,snapshot){
       if(snapshot.connectionState == ConnectionState.waiting){
@@ -54,6 +79,7 @@ static  List listMonth=["Jan","Feb","March","April",'May',"June","July","Aug","S
     if(snapshot.hasData){
       filterDateWiseExp(mExpenses);
       filterMonthWiseExp(mExpenses);
+      filterWeekWiseExp(mExpenses);
 
 
       for(QueryDocumentSnapshot<Map<String,dynamic>> eachDoc in snapshot.data!.docs){
@@ -83,25 +109,27 @@ static  List listMonth=["Jan","Feb","March","April",'May',"June","July","Aug","S
               Text("38000",style: mTextStyle30(),),
             ],
           ),
+          SizedBox(height: 15,),
           Row(children: [
             SizedBox(
               width: MediaQuery.of(context).size.width*0.46,
               child: mFetchContainer(
-                mColor: Colors.green,mType: "Income 50000", ),
+                mColor: Colors.green,mType: "Income",mValue: "\u{20B9} 50000" ),
             ),
             SizedBox(width: 10,),
             SizedBox(
               width: MediaQuery.of(context).size.width*0.46,
               child: mFetchContainer(
-                mColor: Colors.red,mType: "Expenses 12000",),
+                mColor: Colors.red,mType: "Expenses ",mValue: "\u{20B9} 12000"),
             ),
           ],),
-          SizedBox(height: 10,),
+          SizedBox(height: 20,),
           Container(
             child:TabBar(
               controller: tabController,
               indicator: BoxDecoration(), // hides underline
               labelPadding: EdgeInsets.zero,
+                overlayColor: MaterialStateProperty.all(Colors.transparent),
               tabs: List.generate(4, (index) {
                 final isSelected = tabController!.index == index;
                 final titles = ["Today","Week","Month","Year"];
@@ -123,72 +151,29 @@ static  List listMonth=["Jan","Feb","March","April",'May',"June","July","Aug","S
                 );
               }),
             ),
-            // TabBar(
-            //     unselectedLabelColor: Colors.grey,
-            //     indicatorColor:Colors.transparent ,
-            //     indicator: UnderlineTabIndicator(borderSide: BorderSide(color: Colors.transparent,width: 0)),
-            //     tabs: [
-            //   Tab(
-            //     child: Container(
-            //       height: 30,width: 70,
-            //       decoration: BoxDecoration(
-            //         color: isSelected? Colors.transparent:Colors.amber.shade400,
-            //         borderRadius: BorderRadius.circular(10),
-            //       ),
-            //       child: Center(child: Text("Today",style: mTextStyle12(mColor: Colors.grey),)),
-            //     ),
-            //   ),
-            //       Tab(
-            //         child: Container(
-            //           height: 30,width: 70,
-            //           decoration: BoxDecoration(
-            //             color: isSelected? Colors.transparent:Colors.amber.shade400,
-            //             borderRadius: BorderRadius.circular(10),
-            //           ),
-            //           child: Center(child: Text("Week",style: mTextStyle12(mColor: Colors.grey))),
-            //         ),
-            //       ),
-            //       Tab(
-            //         child: Container(
-            //           height: 30,width: 70,
-            //           decoration: BoxDecoration(
-            //             color: isSelected? Colors.transparent:Colors.amber.shade400,
-            //             borderRadius: BorderRadius.circular(10),
-            //           ),
-            //           child: Center(child: Text("Month",style: mTextStyle12(mColor: Colors.grey))),
-            //         ),
-            //       ),
-            //       Tab(
-            //         child: Container(
-            //           height: 30,width: 70,
-            //           decoration: BoxDecoration(
-            //             color: isSelected? Colors.transparent:Colors.amber.shade400,
-            //             borderRadius: BorderRadius.circular(10),
-            //           ),
-            //           child: Center(child: Text("Year",style: mTextStyle12(mColor: Colors.grey))),
-            //         ),
-            //       ),
-            // ]),
           ),
           Container(
-            height: 20,
+            height: 10,
           ),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Recent Transaction",style: mTextStyle14(),),
-              Container(
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    color: Colors.grey.shade300
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Recent Transaction",style: mTextStyle14(),),
+                Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.grey.shade300
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text("See All",style: mTextStyle12(),),
+                  ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text("See All",style: mTextStyle12(),),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
          Expanded(
            child: TabBarView(
@@ -202,14 +187,87 @@ static  List listMonth=["Jan","Feb","March","April",'May',"June","July","Aug","S
                      var eachData=ExpenseModel.fromMap(mData[index].data());
                      return ListTile(
                        leading: Container(
-                         width: 40,height: 40,
-                         // child: Image.asset(AppConstants.mCategories.where((element) => element.id==).toList()[0].imgURL!),
+                         width: 50,height: 50,
+
+                         child: Padding(
+                           padding: const EdgeInsets.all(12.0),
+                           child: Image.asset(AppConstants.mCategories.where((each)=>each.id==int.parse(eachData.cat_value!)).toList()[0].imgURL ?? "",height: 30,width: 30,fit: BoxFit.fill,
+                           ),
+                         ),
+                             decoration: BoxDecoration(
+                           borderRadius: BorderRadius.circular(10),
+                           color: Colors.primaries[Random().nextInt(Colors.primaries.length-1)].shade100,
+                         ),),
+                      title: Text(AppConstants.mCategories[int.parse(eachData.cat_value!)-1].name! ?? "",style: mTextStyle12(),),
+                       subtitle: Text(eachData.expense_desc! ?? "",style: mTextStyle12(mColor: Colors.grey) )  ,
+                       trailing: Column(
+                         children: [
+                           Text('-\u{20B9}${eachData.expense_amount}',style: mTextStyle12(mColor: Colors.red),),
+                           Text(mTodayFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(eachData.expense_createdAt!))),style: mTextStyle12(mColor: Colors.grey),)
+                         ],
+                       ),
+                     );
+                   }),
+               ListView.builder(
+                 itemCount: listWeekWiseExpModel.length,
+                 itemBuilder: (context, index) {
+                   final weekData = listWeekWiseExpModel[index];
+                   return ExpansionTile(
+                     title: Text("${weekData.weekLabel} - ₹${weekData.totalAmount}", style: mTextStyle14()),
+                     children: weekData.expenses.map((eachData) {
+                       return ListTile(
+                         leading: Container(
+                           width: 50,
+                           height: 50,
+                           decoration: BoxDecoration(
+                             borderRadius: BorderRadius.circular(10),
+                             color: Colors.primaries[Random().nextInt(Colors.primaries.length)].shade100,
+                           ),
+                           child: Padding(
+                             padding: const EdgeInsets.all(12.0),
+                             child: Image.asset(
+                               AppConstants.mCategories.where((each) => each.id == int.parse(eachData.cat_value!)).first.imgURL ?? "",
+                               height: 30,
+                               width: 30,
+                               fit: BoxFit.fill,
+                             ),
+                           ),
+                         ),
+                         title: Text(AppConstants.mCategories[int.parse(eachData.cat_value!) - 1].name! ?? "", style: mTextStyle12()),
+                         subtitle: Text(eachData.expense_desc! ?? "", style: mTextStyle12(mColor: Colors.grey)),
+                         trailing: Column(
+                           crossAxisAlignment: CrossAxisAlignment.end,
+                           children: [
+                             Text('-\u{20B9}${eachData.expense_amount}', style: mTextStyle12(mColor: Colors.red)),
+                             Text(mTodayFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(eachData.expense_createdAt!))), style: mTextStyle12(mColor: Colors.grey)),
+                           ],
+                         ),
+                       );
+                     }).toList(),
+                   );
+                 },
+               ),
+               ListView.builder(
+                   shrinkWrap: true,
+                   physics: NeverScrollableScrollPhysics(),
+                   itemCount: mData.length,
+                   itemBuilder: (context,index){
+                     var eachData=ExpenseModel.fromMap(mData[index].data());
+                     return ListTile(
+                       leading: Container(
+                         width: 50,height: 50,
+
+                         child: Padding(
+                           padding: const EdgeInsets.all(12.0),
+                           child: Image.asset(AppConstants.mCategories.where((each)=>each.id==int.parse(eachData.cat_value!)).toList()[0].imgURL ?? "",height: 30,width: 30,fit: BoxFit.fill,
+                           ),
+                         ),
                          decoration: BoxDecoration(
                            borderRadius: BorderRadius.circular(10),
-                           color: Colors.grey.shade200,
+                           color: Colors.primaries[Random().nextInt(Colors.primaries.length-1)].shade100,
                          ),),
-                       title: Text(eachData.cat_value!,style: mTextStyle12(),),
-                       subtitle: Text(eachData.expense_desc!,style: mTextStyle12(mColor: Colors.grey),),
+                       title: Text(AppConstants.mCategories[int.parse(eachData.cat_value!)-1].name! ?? "",style: mTextStyle12(),),
+                       subtitle: Text(eachData.expense_desc! ?? "",style: mTextStyle12(mColor: Colors.grey) )  ,
                        trailing: Column(
                          children: [
                            Text('-\u{20B9}${eachData.expense_amount}',style: mTextStyle12(mColor: Colors.red),),
@@ -226,62 +284,19 @@ static  List listMonth=["Jan","Feb","March","April",'May',"June","July","Aug","S
                      var eachData=ExpenseModel.fromMap(mData[index].data());
                      return ListTile(
                        leading: Container(
-                         width: 40,height: 40,
-                         child: Image.asset(""),
+                         width: 50,height: 50,
+
+                         child: Padding(
+                           padding: const EdgeInsets.all(12.0),
+                           child: Image.asset(AppConstants.mCategories.where((each)=>each.id==int.parse(eachData.cat_value!)).toList()[0].imgURL ?? "",height: 30,width: 30,fit: BoxFit.fill,
+                           ),
+                         ),
                          decoration: BoxDecoration(
                            borderRadius: BorderRadius.circular(10),
-                           color: Colors.grey.shade200,
+                           color: Colors.primaries[Random().nextInt(Colors.primaries.length-1)].shade100,
                          ),),
-                       title: Text(eachData.cat_value!,style: mTextStyle12(),),
-                       subtitle: Text(eachData.expense_desc!,style: mTextStyle12(mColor: Colors.grey),),
-                       trailing: Column(
-                         children: [
-                           Text('-\u{20B9}${eachData.expense_amount}',style: mTextStyle12(mColor: Colors.red),),
-                           Text(mTodayFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(eachData.expense_createdAt!))),style: mTextStyle12(mColor: Colors.grey),)
-                         ],
-                       ),
-                     );
-                   }),
-               ListView.builder(
-                   shrinkWrap: true,
-                   physics: NeverScrollableScrollPhysics(),
-                   itemCount: mData.length,
-                   itemBuilder: (context,index){
-                     var eachData=ExpenseModel.fromMap(mData[index].data());
-                     return ListTile(
-                       leading: Container(
-                         width: 40,height: 40,
-                         child: Image.asset(""),
-                         decoration: BoxDecoration(
-                           borderRadius: BorderRadius.circular(10),
-                           color: Colors.grey.shade200,
-                         ),),
-                       title: Text(eachData.cat_value!,style: mTextStyle12(),),
-                       subtitle: Text(eachData.expense_desc!,style: mTextStyle12(mColor: Colors.grey),),
-                       trailing: Column(
-                         children: [
-                           Text('-\u{20B9}${eachData.expense_amount}',style: mTextStyle12(mColor: Colors.red),),
-                           Text(mTodayFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(eachData.expense_createdAt!))),style: mTextStyle12(mColor: Colors.grey),)
-                         ],
-                       ),
-                     );
-                   }),
-               ListView.builder(
-                   shrinkWrap: true,
-                   physics: NeverScrollableScrollPhysics(),
-                   itemCount: mData.length,
-                   itemBuilder: (context,index){
-                     var eachData=ExpenseModel.fromMap(mData[index].data());
-                     return ListTile(
-                       leading: Container(
-                         width: 40,height: 40,
-                         child: Image.asset(""),
-                         decoration: BoxDecoration(
-                           borderRadius: BorderRadius.circular(10),
-                           color: Colors.grey.shade200,
-                         ),),
-                       title: Text(eachData.cat_value!,style: mTextStyle12(),),
-                       subtitle: Text(eachData.expense_desc!,style: mTextStyle12(mColor: Colors.grey),),
+                       title: Text(AppConstants.mCategories[int.parse(eachData.cat_value!)-1].name! ?? "",style: mTextStyle12(),),
+                       subtitle: Text(eachData.expense_desc! ?? "",style: mTextStyle12(mColor: Colors.grey) )  ,
                        trailing: Column(
                          children: [
                            Text('-\u{20B9}${eachData.expense_amount}',style: mTextStyle12(mColor: Colors.red),),
@@ -384,4 +399,44 @@ void filterDateWiseExp(List<ExpenseModel> allExpenses) {
 void filterYearWiseExp(List<ExpenseModel> allExpenses){
 
 }
+void filterWeekWiseExp(List<ExpenseModel> allExpenses) {
+  listWeekWiseExpModel.clear();
+  Map<String, List<ExpenseModel>> weekGroups = {};
+
+  for (var expense in allExpenses) {
+    DateTime date = DateTime.fromMillisecondsSinceEpoch(int.parse(expense.expense_createdAt!));
+    int weekOfYear = ((date.dayOfYear - date.weekday + 10) / 7).floor(); // ISO week
+    String weekLabel = "Week $weekOfYear, ${date.year}";
+
+    if (!weekGroups.containsKey(weekLabel)) {
+      weekGroups[weekLabel] = [];
+    }
+    weekGroups[weekLabel]!.add(expense);
+  }
+
+  weekGroups.forEach((week, exps) {
+    num total = 0;
+    for (var e in exps) {
+      if (e.expense_type == "Debit") {
+        total -= e.expense_amount!;
+      } else {
+        total += e.expense_amount!;
+      }
+    }
+
+    listWeekWiseExpModel.add(WeekWiseExpModel(
+      weekLabel: week,
+      totalAmount: total,
+      expenses: exps,
+    ));
+  });
+
+  print(listWeekWiseExpModel.map((e) => "${e.weekLabel}: ₹${e.totalAmount}").toList());
+}
+
+}
+extension DateHelper on DateTime {
+  int get dayOfYear {
+    return int.parse(DateFormat("D").format(this));
+  }
 }

@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
-class DataBaseHelper {
+class DataBaseHelper{
 
   DataBaseHelper._();
   static final DataBaseHelper db = DataBaseHelper._();
@@ -134,6 +134,12 @@ class DataBaseHelper {
     }
     return mExpense;
   }
+ Future<bool> updateExpense({required ExpenseModel newExpense}) async{
+  var mainDataBase = await getDB();
+  int rowsEffected = await mainDataBase.update(Expense_Table, newExpense.toMap());
+  return rowsEffected>0;
+  }
+
 
 // emailValidateEvent({required String email}) async {
 //  var db= await getDB();

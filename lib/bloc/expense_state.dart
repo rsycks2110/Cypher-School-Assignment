@@ -11,6 +11,6 @@ class ExpenseLoadedState extends ExpenseState{
   ExpenseLoadedState({required this.mExpense});
 }
 class ExpenseErrorState extends ExpenseState{
-  String errormsg;
-  ExpenseErrorState({required this.errormsg});
+  String errorMsg;
+  ExpenseErrorState({required this.errorMsg});
 }

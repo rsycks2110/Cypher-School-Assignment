@@ -7,7 +7,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/model/cat_model.dart';
 import '../../domain/app_colors.dart';
+import '../../domain/app_constants.dart';
 
 class AddExpense extends StatefulWidget{
 
@@ -30,7 +32,7 @@ class AddExpenseState extends State<AddExpense> {
   List<String> catItems=["Cinema","Fruits","Hospital_Bill","Shopping","Travelling","Travelling Bags"];
   String walletValue="SBI";
    List<String> walletItem=["SBI","PNB","HDFC","BOB"];
-
+  Cat_Models? selectedCategory;
 
   @override
 
@@ -108,25 +110,51 @@ class AddExpenseState extends State<AddExpense> {
                          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),
                            border: Border.all(width: 0.5,color: Colors.grey),
                          ),
-                         child: Padding(
-                           padding:  EdgeInsets.symmetric(horizontal: 10),
-                           child: DropdownButtonHideUnderline(
-                             child: DropdownButton(
-                               items: catItems.map((each){
-                                 return DropdownMenuItem(value: each,
-                                     child: Text(each,style: mTextStyle12(mColor: Colors.grey),));
-                               }).toList(), onChanged: (value){
-                               catValue=value!;
-                               setState(() {
-
-                               });
-                             },value: catValue,isExpanded: true,
+                         child:  DropdownButtonHideUnderline(
+                           child: Padding(
+                             padding: const EdgeInsets.all(10.0),
+                             child: DropdownButton<Cat_Models>(
                                hint: Text("Category",style: TextStyle(fontSize: 12,color: Colors.grey),),
-                             ),
+                               value: selectedCategory,
+                               isExpanded: true,
+                               onChanged: (Cat_Models? newValue) {
+                             setState(() {
+                               selectedCategory = newValue!;
+                             });
+                             },
+                               items: AppConstants.mCategories.map((Cat_Models category) {
+                             return DropdownMenuItem<Cat_Models>(
+                               value: category,
+                               child: Row(
+                                 children: [
+                                   Image.asset(category.imgURL, width: 24, height: 24),
+                                   SizedBox(width: 10),
+                                   Text(category.name,style: TextStyle(fontSize: 12,color: Colors.grey)),
+                                 ],
+                               ),
+                             );
+                                                    }).toList(),
+
+                             // Padding(
+                             //   padding:  EdgeInsets.symmetric(horizontal: 10),
+                             //   child: DropdownButtonHideUnderline(
+                             //     child: DropdownButton(
+                             //       items: AppConstants.mCategories.name.map((each){
+                             //         return DropdownMenuItem(value: each,
+                             //             child: Text(each,style: mTextStyle12(mColor: Colors.grey),));
+                             //       }).toList(), onChanged: (value){
+                             //       catValue=value!;
+                             //       setState(() {
+                             //
+                             //       });
+                             //     },value: catValue,isExpanded: true,
+                             //       hint: Text("Category",style: TextStyle(fontSize: 12,color: Colors.grey),),
+                             //     ),
+                             //   ),
+                             // ),
+                                                  ),
                            ),
-                         ),
-                       ),
-                     ),
+                         ),)),
                      SizedBox(height: 10,),
 
                      Padding(
@@ -193,7 +221,7 @@ class AddExpenseState extends State<AddExpense> {
                            height: 40,width: double.infinity,
                            child: mButton(onTap: () {
                              var newExpense= ExpenseModel(
-                                 cat_value: catValue,
+                                 cat_value: selectedCategory!.id.toString(),
                                  expense_desc: descController.text.toString()!,
                                  expense_createdAt: DateTime.now().millisecondsSinceEpoch.toString()!,
                                  expense_type: walletValue,

@@ -24,9 +24,10 @@ class YearWiseExpModel{
   YearWiseExpModel({required this.year,required this.totalAmount,required this.expenses});
 
 }
-class WeekWiseExpModel{
-  String week;
-  num totalAmount;
-  List<ExpenseModel> expenses;
-  WeekWiseExpModel({required this.week,required this.totalAmount,required this.expenses});
+class WeekWiseExpModel {
+  final String weekLabel; // Example: "Week 15, 2025"
+  final num totalAmount;
+  final List<ExpenseModel> expenses;
+
+  WeekWiseExpModel({required this.weekLabel, required this.totalAmount, required this.expenses});
 }

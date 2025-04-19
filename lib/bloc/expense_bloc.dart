@@ -20,7 +20,7 @@ class ExpenseBloc extends Bloc<ExpenseEvent,ExpenseState>{
       List<ExpenseModel> allExpense = await db.fetchExpense();
       emit(ExpenseLoadedState(mExpense:allExpense ));
     } else{
-      emit(ExpenseErrorState(errormsg: "Expense Not Added"));
+      emit(ExpenseErrorState(errorMsg: "Expense Not Added"));
       }
   }
   );
@@ -30,7 +30,19 @@ class ExpenseBloc extends Bloc<ExpenseEvent,ExpenseState>{
     emit(ExpenseLoadedState(mExpense: allExpense));
   });
 
+
+  on<UpdateExpenseEvent>((event,emit) async{
+    emit(ExpenseLoadingState());
+    bool check= await db.updateExpense(newExpense: event.newExpense);
+    if (check) {
+      List<ExpenseModel> allExpense = await db.fetchExpense();
+      emit(ExpenseLoadedState(mExpense:allExpense ));
+    } else{
+      emit(ExpenseErrorState(errorMsg: "Expense Not Updated"));
+    }
+  });
   }
+
 
 
 }

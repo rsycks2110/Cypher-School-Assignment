@@ -22,6 +22,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   TextEditingController passwordController=TextEditingController();
   UserCredential? credential;
+  bool visibility= true;
 @override
   Widget build(BuildContext context) {
    return Scaffold(
@@ -36,14 +37,43 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             SizedBox(height: MediaQuery.of(context).size.height*.08,),
              SizedBox(height: 40,
-                 child: mTextField(mController: nameController,mLabel: Text("Name"))),
+                 child: mTextField(mController: nameController,mLabel: Text("Name"),mHintText:"Enter Name Here")),
              SizedBox(height: 15,),
              SizedBox(height: 40,
-                 child: mTextField(mController: emailController,mLabel: Text("Email"))),
+                 child: mTextField(mController: emailController,mHintText:"Enter Email Here",mLabel: Text("Email"))),
              SizedBox(height: 15,),
              SizedBox(height: 40,
-                 child: mTextField(mController: passwordController,mLabel: Text("Password"))),
-             SizedBox(height: 15,),
+                 child: TextField(
+                   controller: passwordController,
+                   obscureText: visibility,
+                   decoration: InputDecoration(
+                     hintText: "Enter Password Here",
+                     labelText: "Password",
+                       hintStyle: TextStyle(fontSize: 12),
+                       labelStyle: TextStyle(color: Colors.grey,fontSize: 12,fontWeight: FontWeight.normal),
+                     suffix:InkWell(
+                       onTap: (){
+                         visibility=!visibility;
+                         setState(() {
+
+                         });
+                       },
+                         child: Icon(Icons.remove_red_eye)),
+                     enabledBorder: OutlineInputBorder(
+                       borderRadius: BorderRadius.circular(10),
+                         borderSide: BorderSide(color: Colors.grey.withOpacity(0.5))
+                     ),
+                     disabledBorder: OutlineInputBorder(
+                       borderRadius: BorderRadius.circular(10),
+                         borderSide: BorderSide(color: Colors.grey.withOpacity(0.5))
+                     ),
+                     focusedBorder: OutlineInputBorder(
+                       borderRadius: BorderRadius.circular(10),
+                         borderSide: BorderSide(color: Colors.grey.withOpacity(0.5))
+                     )
+                   ),
+                 )),
+                 SizedBox(height: 15,),
              Row(
                children: [
                  Checkbox(value: false, onChanged: (value){

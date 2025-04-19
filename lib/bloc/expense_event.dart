@@ -6,6 +6,12 @@ class AddExpenseEvent extends ExpenseEvent{
   AddExpenseEvent({required this.newExpense});
 }
 class FetchExpenseEvent extends ExpenseEvent{
-  String userId;
-  FetchExpenseEvent({required this.userId});
+}
+class UpdateExpenseEvent extends ExpenseEvent{
+  ExpenseModel newExpense;
+  UpdateExpenseEvent({required this.newExpense});
+}
+class DeleteExpenseEvent extends ExpenseEvent{
+  String expenseId;
+  DeleteExpenseEvent({required this.expenseId});
 }
