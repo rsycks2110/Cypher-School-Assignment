@@ -45,11 +45,12 @@ var mUsers;
 FirebaseFirestore mFirebaseFireStore=FirebaseFirestore.instance;
 TabController? tabController;
 DateFormat mTodayFormat=DateFormat().add_Hms();
+DateFormat mFormat=DateFormat().add_yMMMd();
 List<DateWiseExpModel> listDateWiseExp=[];
 List<MonthWiseExpModel> listMonthWiseExp=[];
 List<YearWiseExpModel> listYearWiseExp=[];
 List<WeekWiseExpModel> listWeekWiseExpModel=[];
-List<ExpenseModel> mExpenses=[];
+
 static  List listMonth=["Jan","Feb","March","April",'May',"June","July","Aug","Sep","Oct","Nov","Dec"];
 
   @override
@@ -77,15 +78,15 @@ static  List listMonth=["Jan","Feb","March","April",'May',"June","July","Aug","S
       }
       else if(snapshot.connectionState==ConnectionState.active){
     if(snapshot.hasData){
-      filterDateWiseExp(mExpenses);
-      filterMonthWiseExp(mExpenses);
-      filterWeekWiseExp(mExpenses);
-
-
+      List<ExpenseModel> mExpenses=[];
       for(QueryDocumentSnapshot<Map<String,dynamic>> eachDoc in snapshot.data!.docs){
         mExpenses.add(ExpenseModel.fromMap(eachDoc.data()));
       }
+      filterDateWiseExp(mExpenses);
+      filterMonthWiseExp(mExpenses);
+      filterWeekWiseExp(mExpenses);
       var mData= snapshot.data!.docs;
+
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
@@ -180,34 +181,37 @@ static  List listMonth=["Jan","Feb","March","April",'May',"June","July","Aug","S
              controller: tabController,
              children: [
                ListView.builder(
-                   shrinkWrap: true,
-                   physics: NeverScrollableScrollPhysics(),
-                   itemCount: mData.length,
-                   itemBuilder: (context,index){
-                     var eachData=ExpenseModel.fromMap(mData[index].data());
-                     return ListTile(
-                       leading: Container(
-                         width: 50,height: 50,
+                 itemCount: listMonthWiseExp.length,
+                 itemBuilder: (context, index) {
+                   return Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                     children: listMonthWiseExp[index].expenses.map((expense) {
+                       return ListTile(
+                         leading: Container(
+                           width: 50,height: 50,
 
-                         child: Padding(
-                           padding: const EdgeInsets.all(12.0),
-                           child: Image.asset(AppConstants.mCategories.where((each)=>each.id==int.parse(eachData.cat_value!)).toList()[0].imgURL ?? "",height: 30,width: 30,fit: BoxFit.fill,
+                           child: Padding(
+                             padding: const EdgeInsets.all(12.0),
+                             child: Image.asset(AppConstants.mCategories.where((each)=>each.id==int.parse(expense.cat_value!)).toList()[0].imgURL ?? "",height: 30,width: 30,fit: BoxFit.fill,
+                             ),
                            ),
+                           decoration: BoxDecoration(
+                             borderRadius: BorderRadius.circular(10),
+                             color: Colors.primaries[Random().nextInt(Colors.primaries.length-1)].shade100,
+                           ),),
+                         title: Text(expense.expense_type ?? "",style: mTextStyle12(),),
+                         subtitle: Text(expense.expense_desc ?? "",style: mTextStyle12(mColor: Colors.grey) )  ,
+                         trailing: Column(
+                           children: [
+                             Text('-\u{20B9}${expense.expense_amount}',style: mTextStyle12(mColor: Colors.red),),
+                           //  Text(mFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(listDateWiseExp[index].date))),style: mTextStyle12(mColor: Colors.grey),)
+                           ],
                          ),
-                             decoration: BoxDecoration(
-                           borderRadius: BorderRadius.circular(10),
-                           color: Colors.primaries[Random().nextInt(Colors.primaries.length-1)].shade100,
-                         ),),
-                      title: Text(AppConstants.mCategories[int.parse(eachData.cat_value!)-1].name! ?? "",style: mTextStyle12(),),
-                       subtitle: Text(eachData.expense_desc! ?? "",style: mTextStyle12(mColor: Colors.grey) )  ,
-                       trailing: Column(
-                         children: [
-                           Text('-\u{20B9}${eachData.expense_amount}',style: mTextStyle12(mColor: Colors.red),),
-                           Text(mTodayFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(eachData.expense_createdAt!))),style: mTextStyle12(mColor: Colors.grey),)
-                         ],
-                       ),
-                     );
-                   }),
+                       );
+                     }).toList(),
+                   );
+                 },
+               ),
                ListView.builder(
                  itemCount: listWeekWiseExpModel.length,
                  itemBuilder: (context, index) {
@@ -250,30 +254,34 @@ static  List listMonth=["Jan","Feb","March","April",'May',"June","July","Aug","S
                ListView.builder(
                    shrinkWrap: true,
                    physics: NeverScrollableScrollPhysics(),
-                   itemCount: mData.length,
+                   itemCount: listMonthWiseExp.length,
                    itemBuilder: (context,index){
-                     var eachData=ExpenseModel.fromMap(mData[index].data());
-                     return ListTile(
-                       leading: Container(
-                         width: 50,height: 50,
+                   //  var eachData=ExpenseModel.fromMap(mData[index].data());
+                     return Column(
+                       children: listMonthWiseExp[index].expenses.map((expense){
+                       return ListTile(
+                           leading: Container(
+                             width: 50,height: 50,
+                             child: Padding(
+                               padding: const EdgeInsets.all(12.0),
+                               child: Image.asset(AppConstants.mCategories.where((each)=>each.id==int.parse(expense.cat_value!)).toList()[0].imgURL ?? "",height: 30,width: 30,fit: BoxFit.fill,
+                               ),
+                             ),
+                             decoration: BoxDecoration(
+                               borderRadius: BorderRadius.circular(10),
+                               color: Colors.primaries[Random().nextInt(Colors.primaries.length-1)].shade100,
+                             ),),
+                           title: Text(AppConstants.mCategories[int.parse(expense.cat_value!)-1].name! ?? "",style: mTextStyle12(),),
+                           subtitle: Text(expense.expense_desc! ?? "",style: mTextStyle12(mColor: Colors.grey) )  ,
+                           trailing: Column(
+                             children: [
+                               Text('-\u{20B9}${expense.expense_amount}',style: mTextStyle12(mColor: Colors.red),),
+                            //  Text(listMonthWiseExp[index].month)));,style: mTextStyle12(mColor: Colors.grey)
 
-                         child: Padding(
-                           padding: const EdgeInsets.all(12.0),
-                           child: Image.asset(AppConstants.mCategories.where((each)=>each.id==int.parse(eachData.cat_value!)).toList()[0].imgURL ?? "",height: 30,width: 30,fit: BoxFit.fill,
+                             ],
                            ),
-                         ),
-                         decoration: BoxDecoration(
-                           borderRadius: BorderRadius.circular(10),
-                           color: Colors.primaries[Random().nextInt(Colors.primaries.length-1)].shade100,
-                         ),),
-                       title: Text(AppConstants.mCategories[int.parse(eachData.cat_value!)-1].name! ?? "",style: mTextStyle12(),),
-                       subtitle: Text(eachData.expense_desc! ?? "",style: mTextStyle12(mColor: Colors.grey) )  ,
-                       trailing: Column(
-                         children: [
-                           Text('-\u{20B9}${eachData.expense_amount}',style: mTextStyle12(mColor: Colors.red),),
-                           Text(mTodayFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(eachData.expense_createdAt!))),style: mTextStyle12(mColor: Colors.grey),)
-                         ],
-                       ),
+                         );
+                       }).toList()
                      );
                    }),
                ListView.builder(
@@ -328,8 +336,7 @@ void filterDateWiseExp(List<ExpenseModel> allExpenses) {
 
   List<String> uniqueDates = [];
   for(ExpenseModel eachExp in allExpenses) {
-
-    String date = mTodayFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(eachExp.expense_createdAt!)));
+    String date = mFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(eachExp.expense_createdAt!)));
     if(!uniqueDates.contains(date)){
       uniqueDates.add(date);
     }
@@ -340,7 +347,7 @@ void filterDateWiseExp(List<ExpenseModel> allExpenses) {
     num eachDayAmt=0.0;
     List<ExpenseModel> eachDayExpense=[];
     for(ExpenseModel eachExpenses in allExpenses) {
-      String date=mTodayFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(eachExpenses.expense_createdAt!)));
+      String date=mFormat.format(DateTime.fromMillisecondsSinceEpoch(int.parse(eachExpenses.expense_createdAt!)));
       if(date==eachDate){
         eachDayExpense.add(eachExpenses);
         if(eachExpenses.expense_type=="Debit"){
